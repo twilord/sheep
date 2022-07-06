@@ -32,8 +32,8 @@ class MyYolo:
 
     def my_yolo_init(self, img_to_yolo, config: Config):
         # 加载图片、转为blob格式、送入网络输入层
-        img_to_yolo = cv.resize(img_to_yolo, (config.config['img_height'], config.config['img_weight']))
-        blob_img = cv.dnn.blobFromImage(img_to_yolo, 1.0 / 255.0, (416, 416), None, True, False)
+        # img_to_yolo = cv.resize(img_to_yolo, (int(config.config['img_height'] / 2), int(config.config['img_weight'] / 2)), )
+        blob_img = cv.dnn.blobFromImage(img_to_yolo, 1.0 / 255.0, (320, 320), None, True, False)
 
         # 调用setInput函数将图片送入输入层
         self.yolo_net.setInput(blob_img)
@@ -92,6 +92,19 @@ class YoloBoxes:
                     text = 'sheep_classification{}: {:.4f}'.format(classification, self.confidences[i])
                     cv.putText(img, text, (x, y-5), cv.FONT_HERSHEY_SIMPLEX, 0.5, self.COLOR, 2)
                     return img, [x, y, w, h]
+        return img, [0, 0, 0, 0]
+
+    def show_boxes_no_classification(self, img: np.ndarray) -> (np.ndarray, list):
+        if len(self.idxs) > 0:
+            for i in self.idxs.flatten():
+                (x, y) = (self.boxes[i][0], self.boxes[i][1])
+                (w, h) = (self.boxes[i][2], self.boxes[i][3])
+
+                cv.rectangle(img, (x, y), (x + w, y + h), self.COLOR, 2)
+                return img, [x, y, w, h]
+                # if self.labels[self.classIDs[i]] == 'dog' or self.labels[self.classIDs[i]] == 'sheep':
+                #     cv.rectangle(img, (x, y), (x + w, y + h), self.COLOR, 2)
+                #     return img, [x, y, w, h]
         return img, [0, 0, 0, 0]
 
 

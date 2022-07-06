@@ -1,5 +1,6 @@
 from detection_config import Config
 from rembg import remove
+from rembg.detect import ort_session
 import time
 import cv2 as cv
 import os
@@ -55,7 +56,7 @@ class ImageUtils:
     # 背景去除
     @staticmethod
     def remove_bk(img_to_rembg) -> Image.Image:
-        pic = remove(img_to_rembg)
+        pic = remove(img_to_rembg, session=ort_session("u2netp"))
         pic = pic.convert('RGB')
         return pic
 

@@ -3,7 +3,6 @@ from detection_config import Config, MyYolo, Camera, YoloBoxes
 from detection_utils import ImageUtils, ClfSheep
 from main import Net
 
-
 if __name__ == '__main__':
     # 加载yolo的配置,加载yolo网络，预训练模型
     config = Config(img_weight=1280, img_height=1280)
