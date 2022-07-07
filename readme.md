@@ -1,3 +1,4 @@
+### 内容结构
 /picture 保存相机捕获的图片
 
 /pretrain_model 羊毛分类模型
@@ -14,3 +15,5 @@ detection_utils.py 一些能够使用的模块
 
 interface.py 界面程序
 其他文件多为测试文件，可以不用理会
+
+### 使用yolov3
