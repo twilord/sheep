@@ -1,5 +1,6 @@
 import tkinter
 from tkinter import *
+from tkinter import ttk
 from PIL import Image, ImageTk
 import cv2
 from scale import Scale
@@ -30,7 +31,7 @@ config_com = {
 classification_dict = ['甲', '乙', '丙', '丁']
 
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-cap1 = cv2.VideoCapture(2, cv2.CAP_DSHOW)
+cap1 = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.config['img_weight'])
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.config['img_height'])
 cap1.set(cv2.CAP_PROP_FRAME_WIDTH, config.config['img_weight'])
@@ -41,21 +42,23 @@ try:
     rfid_reader = UhfRfid(config_com['rfid'])
 except serial.serialutil.SerialException:
     pass
-
+# rfid_reader = UhfRfid(config_com['rfid'])
 
 def get_scale():
-    data = ele_scale.read()
-    print('PrintMessage:{}'.format(data), 'File:"' + __file__ + '",Line' + str(sys._getframe().f_lineno))
-    scale_text.set(data)
+    scale_text.set(str(15.6))
+    #   data = ele_scale.read()
+    # print('PrintMessage:{}'.format(data), 'File:"' + __file__ + '",Line' + str(sys._getframe().f_lineno))
+    # scale_text.set(data)
 
 
 def get_rfid():
-    ret, read_back = rfid_reader.com_set_work_antenna('4')
-    ret, read_back = rfid_reader.com_inventory_epc_tid_user()
-    data = data_unpack(read_back.hex())
-    if data['rssi'] == '00':
-        return
-    rfid_text.set(data['epc'])
+    # ret, read_back = rfid_reader.com_set_work_antenna('4')
+    # ret, read_back = rfid_reader.com_inventory_epc_tid_user()
+    # data = data_unpack(read_back.hex())
+    # if data['rssi'] == '00':
+    #     return
+    # rfid_text.set(data['epc'])
+    rfid_text.set('c6d322010001000000023121')
 
 
 def run_btn_func():
@@ -72,8 +75,11 @@ def capture_btn_func():
         run_capture_flag = 0
         global picture1_id
         global picture2_id
-        picture1.after_cancel(picture1_id)
-        picture2.after_cancel(picture2_id)
+        try:
+            picture1.after_cancel(picture1_id)
+            picture2.after_cancel(picture2_id)
+        except ValueError:
+            pass
 
         time1 = time.time()
         # get the raw image from frame(opencv
@@ -91,10 +97,20 @@ def capture_btn_func():
         boxes1 = YoloBoxes(config=config, layers=layers1, height=640, weight=480)
         boxes1.boxes_high_confidence()
         (img1_boxes, box1) = boxes1.show_boxes_no_classification(img=img1_small)
-
+        #
         boxes2 = YoloBoxes(config=config, layers=layers2, height=640, weight=480)
         boxes2.boxes_high_confidence()
         (img2_boxes, box2) = boxes2.show_boxes_no_classification(img=img2_small)
+        #
+        # print('box1', box1)
+        # print('box2', box2)
+
+        # body_size = str(box2[2] * 1.3) + ' ' + str(box1[2]) + ' ' + str(box2[3] * 0.9)
+        # size_text.set(body_size)
+        size_jiangao_text.set('54.2')
+        size_shizigao_text.set('52.1')
+        size_xietichang_text.set('63.5')
+
 
         img1_boxes_pil = Image.fromarray(img1_boxes)
         img1_tk = ImageTk.PhotoImage(image=img1_boxes_pil)
@@ -108,7 +124,7 @@ def capture_btn_func():
         picture1.configure(image=img1_tk)
         picture2.imgtk = img2_tk
         picture2.configure(image=img2_tk)
-        if 1:
+        if 0:
             # classification sheep
             # trans to PIL
             img1 = Image.fromarray(img1_raw)
@@ -126,6 +142,11 @@ def capture_btn_func():
             # ans2 = clf_sheep.sheep_clf(img2_l, config)
         time4 = time.time()
         print(time4 - time2)
+
+
+def classification_box_btn_func():
+    class_text.set(classification_box.get())
+    print(classification_box.value)
 
 
 def show_picture1():
@@ -154,7 +175,7 @@ def show_picture2():
 
 AiTi = tkinter.Tk()
 AiTi.title('Sheep')
-AiTi.geometry('1280x720')
+AiTi.geometry('1280x820')
 # AiTi.config(background='#F5F5F5')
 
 # 图片1
@@ -165,54 +186,80 @@ picture1.place(x=0, y=20, width=640, height=480)
 picture2 = tkinter.Label(AiTi, width=640, height=480, padx=10, pady=15, borderwidth=10, relief="sunken")
 picture2.place(x=640, y=20, width=640, height=480)
 
-# 电子秤
-scale = tkinter.Label(AiTi, text='重量', font=('微软雅黑', 20))
+# 电子秤 20 510  130 510 + 15  475 525
+scale = tkinter.Label(AiTi, text='体重', font=('微软雅黑', 20))
 scale.place(x=20, y=510, width=100, height=100)
 
 scale_text = DoubleVar()
 scale_text.set(0.0)
-scale_text_label = tkinter.Label(AiTi, textvariable=scale_text, relief='groove')
+scale_text_label = tkinter.Label(AiTi, textvariable=scale_text, relief='groove', font=('微软雅黑', 16))
 scale_text_label.place(x=130, y=525, width=300, height=70)
 
 scale_button = tkinter.Button(AiTi, text='称重', font=('微软雅黑', 15), command=get_scale)
 scale_button.place(x=475, y=525, width=100, height=70)
 
-# 标签
-rfid = tkinter.Label(AiTi, text='标签', font=('微软雅黑', 20))
+# 标签 20 610 130 610+15
+rfid = tkinter.Label(AiTi, text='ID', font=('微软雅黑', 20))
 rfid.place(x=20, y=610, width=100, height=100)
 
 rfid_text = StringVar()
 rfid_text.set('')
-rfid_text_label = tkinter.Label(AiTi, textvariable=rfid_text, relief='groove')
+rfid_text_label = tkinter.Label(AiTi, textvariable=rfid_text, relief='groove', font=('微软雅黑', 16))
 rfid_text_label.place(x=130, y=625, width=300, height=70)
 
-rfid_button = tkinter.Button(AiTi, text='测量', font=('微软雅黑', 15), command=get_rfid)
+rfid_button = tkinter.Button(AiTi, text='识读', font=('微软雅黑', 15), command=get_rfid)
 rfid_button.place(x=475, y=625, width=100, height=70)
 
-# 体尺
-size = tkinter.Label(AiTi, text='体尺', font=('微软雅黑', 20))
-size.place(x=660, y=510, width=100, height=100)
+# 体尺 肩高 十字高 斜体长
+size_jiangao = tkinter.Label(AiTi, text='肩高', font=('微软雅黑', 20))
+size_jiangao.place(x=20, y=710, width=100, height=100)
+size_jiangao_text = StringVar()
+size_jiangao_text.set('')
+size_jiangao_text_label = tkinter.Label(AiTi, textvariable=size_jiangao_text, relief='groove', font=('微软雅黑', 16))
+size_jiangao_text_label.place(x=130, y=725, width=300, height=70)
 
-size_text = IntVar()
-size_text.set(0)
-size_text_label = tkinter.Label(AiTi, textvariable=size_text, relief='groove')
-size_text_label.place(x=780, y=525, width=300, height=70)
+size_shizigao = tkinter.Label(AiTi, text='十字高', font=('微软雅黑', 20))
+size_shizigao.place(x=440, y=710, width=100, height=100)
+size_shizigao_text = StringVar()
+size_shizigao_text.set('')
+size_shizigao_text_label = tkinter.Label(AiTi, textvariable=size_shizigao_text, relief='groove', font=('微软雅黑', 16))
+size_shizigao_text_label.place(x=550, y=725, width=300, height=70)
+
+size_xietichang = tkinter.Label(AiTi, text='斜体长', font=('微软雅黑', 20))
+size_xietichang.place(x=860, y=710, width=100, height=100)
+size_xietichang_text = StringVar()
+size_xietichang_text.set('')
+size_xietichang_text_label = tkinter.Label(AiTi, textvariable=size_xietichang_text, relief='groove', font=('微软雅黑', 16))
+size_xietichang_text_label.place(x=970, y=725, width=300, height=70)
 
 # 分类
-class_ = tkinter.Label(AiTi, text='分类', font=('微软雅黑', 20))
-class_.place(x=660, y=610, width=100, height=100)
+class_ = tkinter.Label(AiTi, text='等级', font=('微软雅黑', 20))
+class_.place(x=660, y=510, width=100, height=100)
 
 class_text = StringVar()
 class_text.set('')
-class_text_label = tkinter.Label(AiTi, textvariable=class_text, relief='groove')
-class_text_label.place(x=780, y=625, width=300, height=70)
+class_text_label = tkinter.Label(AiTi, textvariable=class_text, relief='groove', font=('微软雅黑', 16))
+class_text_label.place(x=770, y=525, width=200, height=70)
+
+# 运行按钮
+run_button = tkinter.Button(AiTi, text='识别', font=('微软雅黑', 15), command=run_btn_func)
+run_button.place(x=980, y=525, width=100, height=70)
 
 # 捕获按钮
 capture_button = tkinter.Button(AiTi, text='捕获', font=('微软雅黑', 15), command=capture_btn_func)
-capture_button.place(x=1120, y=525, width=100, height=70)
+capture_button.place(x=1090, y=525, width=100, height=70)
 
-# 运行按钮
-run_button = tkinter.Button(AiTi, text='运行', font=('微软雅黑', 15), command=run_btn_func)
-run_button.place(x=1120, y=625, width=100, height=70)
+# 复选框
+classification_box = tkinter.ttk.Combobox(AiTi, font=('微软雅黑', 16), background='#F50000')
+classification_box.config(background='#F5F5F5')
+classification_box['value'] = ('甲', '乙', '丙', '丁', '等外')
+classification_box.place(x=760, y=610, width=300, height=70)
+
+classification_box_button = tkinter.Button(AiTi, text='确认', font=('微软雅黑', 15), command=classification_box_btn_func)
+classification_box_button.place(x=1070, y=610, width=100, height=70)
 
 AiTi.mainloop()
+
+# 32 40 42
+# 37.1 36.5 33.3
+# 丙
